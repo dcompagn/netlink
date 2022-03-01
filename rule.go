@@ -13,6 +13,7 @@ type Rule struct {
 	Mark              int
 	Mask              int
 	Tos               uint
+	Action            uint
 	TunID             uint
 	Goto              int
 	Src               *net.IPNet
@@ -23,6 +24,10 @@ type Rule struct {
 	SuppressIfgroup   int
 	SuppressPrefixlen int
 	Invert            bool
+	L3Mdev            bool
+	Unresolved        bool
+	IifDetached       bool
+	OifDetached       bool
 	Dport             *RulePortRange
 	Sport             *RulePortRange
 }

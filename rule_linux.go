@@ -9,7 +9,14 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-const FibRuleInvert = 0x2
+const (
+	FibRulePermanent   = 0x00000001
+	FibRuleInvert      = 0x00000002
+	FibRuleUnresolved  = 0x00000004
+	FibRuleIifDetached = 0x00000008
+	FibRuleDevDetached = 0x00000008
+	FibRuleOifDetached = 0x00000010
+)
 
 // RuleAdd adds a rule to the system.
 // Equivalent to: ip rule add
@@ -208,7 +215,11 @@ func (h *Handle) RuleListFiltered(family int, filter *Rule, filterMask uint64) (
 		rule := NewRule()
 
 		rule.Invert = msg.Flags&FibRuleInvert > 0
+		rule.IifDetached = msg.Flags&FibRuleIifDetached > 0
+		rule.OifDetached = msg.Flags&FibRuleOifDetached > 0
+		rule.Unresolved = msg.Flags&FibRuleUnresolved > 0
 		rule.Tos = uint(msg.Tos)
+		rule.Action = uint(msg.Type)
 
 		for j := range attrs {
 			switch attrs[j].Attr.Type {
@@ -254,6 +265,8 @@ func (h *Handle) RuleListFiltered(family int, filter *Rule, filterMask uint64) (
 				rule.Dport = NewRulePortRange(native.Uint16(attrs[j].Value[0:2]), native.Uint16(attrs[j].Value[2:4]))
 			case nl.FRA_SPORT_RANGE:
 				rule.Sport = NewRulePortRange(native.Uint16(attrs[j].Value[0:2]), native.Uint16(attrs[j].Value[2:4]))
+			case nl.FRA_L3MDEV:
+				rule.L3Mdev = uint8(attrs[j].Value[0]) != 0
 			}
 		}
 
